@@ -225,7 +225,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         mLayoutWeather.setVisibility(View.VISIBLE);
         if (weather!=null && "ok".equals(weather.status)){
             Intent intent = new Intent(this, AutoUpdateService.class);
-            startService(intent)
+            startService(intent);
         }else {
             Toast.makeText(this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
         }

@@ -1,5 +1,6 @@
 package com.example.xiugeweather.activity;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -24,6 +25,7 @@ import com.bumptech.glide.Glide;
 import com.example.xiugeweather.R;
 import com.example.xiugeweather.gson.Forecast;
 import com.example.xiugeweather.gson.Weather;
+import com.example.xiugeweather.service.AutoUpdateService;
 import com.example.xiugeweather.util.HttpUtil;
 import com.example.xiugeweather.util.Utility;
 
@@ -187,6 +189,8 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
      * 处理并展示Weather实体类中的数据
      * */
     private void showWeatherInfo(Weather weather) {
+
+
         String cityName = weather.basic.cityName;
         String updateTime = weather.basic.update.updateTime.split(" ")[1];
         String degree = weather.now.temperature + "℃";
@@ -219,6 +223,12 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         mWashTextCar.setText(carWash);
         mTextSport.setText(sport);
         mLayoutWeather.setVisibility(View.VISIBLE);
+        if (weather!=null && "ok".equals(weather.status)){
+            Intent intent = new Intent(this, AutoUpdateService.class);
+            startService(intent)
+        }else {
+            Toast.makeText(this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

@@ -16,7 +16,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
+import com.example.xiugeweather.MainActivity;
 import com.example.xiugeweather.R;
 import com.example.xiugeweather.activity.WeatherActivity;
 import com.example.xiugeweather.db.City;
@@ -80,6 +82,8 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
      * */
     private ProgressDialog progressDialog;
 
+
+    private List<String> dataList = new ArrayList<>();
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -88,8 +92,6 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
         return view;
 
     }
-
-    private List<String> dataList = new ArrayList<>();
 
     private void initView(@NonNull final View itemView) {
         mTextTitle = (TextView) itemView.findViewById(R.id.title_text);
@@ -101,19 +103,26 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
         mViewList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
                 if (currentLevel == LEVEL_PROVINCE) {
                     selectedProvince = provinceList.get(i);
                     queryCities();
                 } else if (currentLevel == LEVEL_CITY) {
                     selectedCity = cityList.get(i);
                     queryCounties();
-                }else if (currentLevel == LEVEL_COUNTY){
+                } else if (currentLevel == LEVEL_COUNTY) {
                     String weatherId = countyList.get(i).getWeatherId();
-                    Intent intent = new Intent(getActivity(), WeatherActivity.class);
-                    intent.putExtra("weather_id",weatherId);
-                    startActivity(intent);
-                    getActivity().finish();
+                    if (getActivity() instanceof MainActivity){
+                        Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                        intent.putExtra("weather_id", weatherId);
+                        startActivity(intent);
+                        getActivity().finish();
+                    }else if (getActivity() instanceof WeatherActivity){
+                        WeatherActivity weatherActivity = (WeatherActivity) getActivity();
+                        weatherActivity.mLayoutDrawer.closeDrawers();
+                        weatherActivity.mRefreshSwipe.setRefreshing(true);
+                        weatherActivity.requestWeather(weatherId);
+                    }
+
                 }
             }
         });
@@ -125,6 +134,7 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
 
         queryProvince();
     }
+
     /*
      * 查询全国所有的省，优先从数据库查询，如果没有查询到再去服务器上查询
      * */
@@ -169,8 +179,6 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
     }
 
 
-
-
     /*
      * 查询选中市内所有的县，优先从数据库查询，如果没有查询到再去服务器上查询
      * */
@@ -178,7 +186,7 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
         mTextTitle.setText(selectedCity.getCityName());
         mButtonBack.setVisibility(View.VISIBLE);
         countyList = DataSupport.where("cityid = ?", String.valueOf(selectedCity.getId())).find(County.class);
-        if (cityList.size() > 0) {
+        if (countyList.size() > 0) {
             dataList.clear();
             for (County county : countyList) {
                 dataList.add(county.getCountyName());
@@ -242,6 +250,7 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
             }
         });
     }
+
     /*
      * 显示进度对话框
      * */
